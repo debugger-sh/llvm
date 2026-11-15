@@ -55,7 +55,7 @@
 #include <optional>
 #include <set>
 #include <system_error>
-#if LLVM_ON_UNIX
+#if LLVM_ON_UNIX && !defined(__wasi__)
 #include <signal.h>
 #endif
 
@@ -474,7 +474,7 @@ int clang_main(int Argc, char **Argv, const llvm::ToolContext &ToolContext) {
     Res = 1;
 #endif
 
-#if LLVM_ON_UNIX
+#if LLVM_ON_UNIX && !defined(__wasi__)
   // On Unix, signals are represented by return codes of 128 plus the signal
   // number. If the return code indicates it was from a signal handler, raise
   // the signal so that the exit code includes the signal number, as required

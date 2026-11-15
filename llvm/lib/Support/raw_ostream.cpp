@@ -837,6 +837,12 @@ size_t raw_fd_ostream::preferred_buffer_size() const {
   // the complexity.
   if (S_ISCHR(statbuf.st_mode) && is_displayed())
     return 0;
+#ifdef __wasi__
+  // WASI has no block size, so wasi-libc reports 0, which would leave
+  // the stream unbuffered and turn every small write into a host call.
+  if (statbuf.st_blksize == 0)
+    return 64 * 1024;
+#endif
   // Return the preferred block size.
   return statbuf.st_blksize;
 #endif

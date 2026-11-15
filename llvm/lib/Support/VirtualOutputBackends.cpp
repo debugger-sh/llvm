@@ -361,8 +361,16 @@ Error OnDiskOutputFile::initializeStream() {
   }
 
   // Buffer the stream if necessary.
+#ifdef __wasi__
+  // every write and seek is a call out of the sandbox, and object
+  // writers patch sizes by seeking back, so keep binary output in memory and
+  // write it once on close.
+  if (!Config.getText())
+    BufferOS.emplace(*FileOS);
+#else
   if (!FileOS->supportsSeeking() && !Config.getText())
     BufferOS.emplace(*FileOS);
+#endif
 
   return Error::success();
 }

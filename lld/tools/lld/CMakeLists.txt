@@ -24,6 +24,11 @@ function(lld_target_link_libraries target type)
   target_link_libraries(${target} ${type} ${ARGN})
 endfunction()
 
+option(LLD_WASM_ONLY "Link only the WebAssembly linker (wasm-ld)" OFF)
+if(LLD_WASM_ONLY)
+  lld_target_link_libraries(lld PRIVATE lldCommon lldWasm)
+  set_source_files_properties(lld.cpp PROPERTIES COMPILE_DEFINITIONS LLD_WASM_ONLY)
+else()
 lld_target_link_libraries(lld
   PRIVATE
   lldCommon
@@ -33,6 +38,7 @@ lld_target_link_libraries(lld
   lldMinGW
   lldWasm
   )
+endif()
 
 if(NOT LLD_SYMLINKS_TO_CREATE)
   set(LLD_SYMLINKS_TO_CREATE

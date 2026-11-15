@@ -66,11 +66,18 @@ static unsigned inTestVerbosity() {
   return v;
 }
 
+#ifdef LLD_WASM_ONLY
+// a browser toolchain that only links WebAssembly carries only wasm-ld.
+LLD_HAS_DRIVER(wasm)
+#define LLD_LINKED_DRIVERS {{lld::Wasm, &lld::wasm::link}}
+#else
 LLD_HAS_DRIVER(coff)
 LLD_HAS_DRIVER(elf)
 LLD_HAS_DRIVER(mingw)
 LLD_HAS_DRIVER(macho)
 LLD_HAS_DRIVER(wasm)
+#define LLD_LINKED_DRIVERS LLD_ALL_DRIVERS
+#endif
 
 int lld_main(int argc, char **argv, const llvm::ToolContext &) {
   sys::Process::UseANSIEscapeCodes(true);
@@ -87,7 +94,7 @@ int lld_main(int argc, char **argv, const llvm::ToolContext &) {
   // exception handling and no memory cleanup on exit.
   if (!inTestVerbosity()) {
     int r =
-        lld::unsafeLldMain(args, llvm::outs(), llvm::errs(), LLD_ALL_DRIVERS,
+        lld::unsafeLldMain(args, llvm::outs(), llvm::errs(), LLD_LINKED_DRIVERS,
                            /*exitEarly=*/true);
     return r;
   }
@@ -100,7 +107,7 @@ int lld_main(int argc, char **argv, const llvm::ToolContext &) {
     inTestOutputDisabled = (i != 1);
 
     // Execute one iteration.
-    auto r = lldMain(args, llvm::outs(), llvm::errs(), LLD_ALL_DRIVERS);
+    auto r = lldMain(args, llvm::outs(), llvm::errs(), LLD_LINKED_DRIVERS);
     if (!r.canRunAgain)
       exitLld(r.retCode); // Exit now, can't re-execute again.
 
